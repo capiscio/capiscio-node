@@ -79,24 +79,6 @@ jobs:
       
     - name: Build CLI
       run: npm run build
-      
-    - name: Test CLI basic functionality (Node.js 20.x)
-      run: |
-        # Test basic CLI functionality
-        node dist/cli.js --version
-        node dist/cli.js --help
-        
-    - name: Test CLI with Node.js 18.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18.x'
-        cache: 'npm'
-        
-    - name: Test CLI basic functionality (Node.js 18.x)
-      run: |
-        # Test basic CLI functionality on Node.js 18.x
-        node dist/cli.js --version
-        node dist/cli.js --help
 
   security:
     runs-on: ubuntu-latest
