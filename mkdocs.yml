@@ -86,8 +86,5 @@ nav:
   - Home: index.md
   - Getting Started:
       - Installation: getting-started/installation.md
-  - Guides:
-      - Programmatic Usage: guides/programmatic-usage.md
-      - Scoring: guides/scoring.md
   - Reference:
-      - CLI Reference: reference/cli.md
+      - Commands: reference/commands.md

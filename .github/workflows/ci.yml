@@ -46,6 +46,20 @@ jobs:
     - name: Run tests
       run: npm test
 
+    - name: Run test coverage
+      run: npm run test:coverage
+
+    - name: Check coverage threshold
+      run: |
+        # Extract coverage percentage from report and fail if below threshold
+        COVERAGE=$(npm run test:coverage 2>&1 | grep "All files" | awk '{print $4}' | sed 's/%//')
+        echo "Coverage: $COVERAGE%"
+        if (( $(echo "$COVERAGE < 65" | bc -l) )); then
+          echo "❌ Coverage $COVERAGE% is below minimum threshold of 65%"
+          exit 1
+        fi
+        echo "✅ Coverage $COVERAGE% meets minimum threshold of 65%"
+
     - name: Run integration tests
       run: npm run test:integration
 

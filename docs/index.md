@@ -1,171 +1,65 @@
 ---
-title: CapiscIO npm Package
-description: Install the capiscio CLI via npm. Validate A2A agent cards from the command line.
+title: CapiscIO Node.js CLI - Documentation
+description: Official documentation for the CapiscIO Node.js CLI wrapper.
 ---
 
-# CapiscIO npm Package
+# CapiscIO Node.js CLI
 
-The `capiscio` npm package installs the CapiscIO CLI for validating A2A agent cards.
+The **CapiscIO Node.js CLI** is a lightweight wrapper around the [CapiscIO Core](https://github.com/capiscio/capiscio-core) binary, designed for seamless integration into Node.js environments.
 
-```bash
-npm install -g capiscio
-```
+!!! info "This is a Wrapper Package"
+    This package does NOT contain validation logic. It downloads and executes the `capiscio-core` Go binary, which performs the actual validation.
 
----
+<div class="grid cards" markdown>
+
+-   **🚀 Getting Started**
+
+    ---
+
+    Install the CLI via npm.
+
+    [:octicons-arrow-right-24: Installation](./getting-started/installation.md)
+
+-   **⚙️ Reference**
+
+    ---
+
+    Wrapper commands and usage.
+
+    [:octicons-arrow-right-24: Commands](./reference/commands.md)
+
+</div>
 
 ## Quick Start
 
 ```bash
-# Validate a local file
+# Install globally
+npm install -g capiscio
+
+# Validate an agent card
 capiscio validate ./agent-card.json
 
-# Validate a remote agent
-capiscio validate https://your-agent.example.com
+# Validate with JSON output (includes scores)
+capiscio validate ./agent-card.json --json
 
-# Strict mode with JSON output
-capiscio validate ./agent-card.json --strict --json
+# Issue a self-signed badge (development)
+capiscio badge issue --self-sign
+
+# Check core version
+capiscio --version
 ```
-
----
 
 ## What This Package Does
 
-This npm package is a **distribution wrapper** for [capiscio-core](https://github.com/capiscio/capiscio-core), the Go-based validation engine.
+1. **Downloads** the correct `capiscio-core` binary for your platform (macOS/Linux/Windows, AMD64/ARM64)
+2. **Caches** the binary in `~/.capiscio/bin` (or `%USERPROFILE%\.capiscio\bin` on Windows)
+3. **Executes** the binary with your arguments via `execa` with inherited stdio
 
-```
-┌────────────────────────────────────┐
-│     npm install -g capiscio        │
-└─────────────────┬──────────────────┘
-                  │
-                  ▼
-┌────────────────────────────────────┐
-│     capiscio-core (Go binary)      │
-│     Downloaded automatically       │
-└────────────────────────────────────┘
-```
+All validation logic lives in `capiscio-core`. This wrapper just makes it easy to install via npm.
 
-**Why a wrapper?**
+## Wrapper-Specific Commands
 
-- ✅ Easy installation via npm
-- ✅ No Go toolchain required
-- ✅ Automatic binary management
-- ✅ Cross-platform support
-
----
-
-## Installation Options
-
-### Global Install (Recommended)
-
-```bash
-npm install -g capiscio
-capiscio validate ./agent-card.json
-```
-
-### npx (No Install)
-
-```bash
-npx capiscio validate ./agent-card.json
-```
-
-### Project Dependency
-
-```bash
-npm install --save-dev capiscio
-npx capiscio validate ./agent-card.json
-```
-
----
-
-## CLI Reference
-
-### validate
-
-Validate an A2A agent card.
-
-```bash
-capiscio validate [input] [options]
-```
-
-| Option | Description |
-|--------|-------------|
-| `--strict` | Strict validation mode |
-| `--json` | JSON output (for CI/CD) |
-| `--schema-only` | Skip network requests |
-| `--skip-signature` | Skip JWS signature verification |
-| `--test-live` | Test live agent endpoint |
-| `--timeout <ms>` | Request timeout (default: 10000) |
-| `--verbose` | Detailed output |
-| `--errors-only` | Show only errors |
-
-### Exit Codes
-
-| Code | Meaning |
-|------|---------|
-| `0` | Validation passed |
-| `1` | Validation failed |
-
----
-
-## CI/CD Integration
-
-### GitHub Actions
-
-```yaml
-- name: Validate Agent Card
-  run: npx capiscio validate ./agent-card.json --strict --json
-```
-
-### GitLab CI
-
-```yaml
-validate:
-  script:
-    - npx capiscio validate ./agent-card.json --strict --json
-```
-
-!!! tip "Dedicated GitHub Action"
-    For richer CI integration, use [validate-a2a](https://github.com/capiscio/validate-a2a).
-
----
-
-## Programmatic Usage
-
-For Node.js applications that need validation results programmatically, spawn the CLI with JSON output:
-
-```typescript
-import { spawnSync } from 'child_process';
-
-function validateAgentCard(path: string) {
-  const result = spawnSync('npx', ['capiscio', 'validate', path, '--json'], {
-    encoding: 'utf8'
-  });
-  
-  // CLI may exit with code 1 on validation failure but still outputs valid JSON
-  const output = result.stdout || result.stderr;
-  return JSON.parse(output);
-}
-
-const result = validateAgentCard('./agent-card.json');
-console.log(`Valid: ${result.success}, Score: ${result.score}`);
-```
-
----
-
-## Alternative Installation Methods
-
-If you prefer not to use npm:
-
-| Method | Command |
-|--------|---------|
-| **pip** | `pip install capiscio` |
-| **Binary** | [Download from GitHub](https://github.com/capiscio/capiscio-core/releases) |
-| **Docker** | `docker pull ghcr.io/capiscio/capiscio-core` |
-
----
-
-## See Also
-
-- [CLI Reference](../reference/cli/index.md) - Complete command documentation
-- [capiscio-core](https://github.com/capiscio/capiscio-core) - Underlying Go binary
-- [validate-a2a](https://github.com/capiscio/validate-a2a) - GitHub Action
+| Command | Description |
+|---------|-------------|
+| `capiscio --wrapper-version` | Display the wrapper package version |
+| `capiscio --wrapper-clean` | Remove cached binary (forces re-download) |

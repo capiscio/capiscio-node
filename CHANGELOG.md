@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.3] - 2025-12-10
+
+### Changed
+- **CLI-ONLY ARCHITECTURE**: Package is now a pure CLI wrapper matching capiscio-python.
+  - Passthrough architecture - ALL commands delegated to capiscio-core binary.
+  - Removed programmatic API (validators, scorers, types).
+  - For programmatic usage, use `@capiscio/sdk` (coming soon).
+
+### Added
+- **`--wrapper-version`**: Display the version of the Node.js wrapper package.
+- **`--wrapper-clean`**: Remove the cached capiscio-core binary (forces re-download on next run).
+
+### Removed
+- **BREAKING**: Removed `CoreValidator`, `validateAgentCard()` exports.
+- **BREAKING**: Removed `A2AValidator`, `FetchHttpClient` exports.
+- **BREAKING**: Removed `ValidateCommand`, `ConsoleOutput`, `JsonOutput` exports.
+- **BREAKING**: Removed all TypeScript types exports.
+- Removed unused dependencies: `commander`, `glob`, `inquirer`, `jose`.
+
+### Fixed
+- All core commands (`badge`, `key`, `gateway`, `validate`) now work via passthrough.
+
 ## [2.1.2] - 2025-11-20
 
 ### Changed
