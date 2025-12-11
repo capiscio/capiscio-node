@@ -12,14 +12,9 @@ export default defineConfig([
     minify: false,
     splitting: false,
     treeshake: true,
-    external: ['commander', 'chalk', 'ora', 'inquirer', 'glob', 'jose'],
-    esbuildOptions(options) {
-      options.banner = {
-        js: '#!/usr/bin/env node'
-      };
-    }
+    external: ['chalk', 'ora', 'execa', 'axios'],
   },
-  // Library exports
+  // Library exports (minimal - just BinaryManager for advanced users)
   {
     entry: { index: 'src/index.ts' },
     format: ['cjs'],
@@ -30,6 +25,6 @@ export default defineConfig([
     minify: false,
     splitting: false,
     treeshake: true,
-    external: ['commander', 'chalk', 'ora', 'inquirer', 'glob', 'jose']
+    external: ['chalk', 'ora', 'execa', 'axios']
   }
 ]);

@@ -14,8 +14,7 @@ const REPO_OWNER = 'capiscio';
 const REPO_NAME = 'capiscio-core';
 
 // Allow version override via env var or package.json
-// TODO: Update this to the actual release version you want to pin
-const DEFAULT_VERSION = 'v1.0.2';
+const DEFAULT_VERSION = 'v2.2.0';
 const VERSION = process.env.CAPISCIO_CORE_VERSION || DEFAULT_VERSION;
 
 export class BinaryManager {
