@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2025-12-10
+
+### Changed
+- **VERSION ALIGNMENT**: All CapiscIO packages now share the same version number.
+  - `capiscio-core`, `capiscio` (npm), and `capiscio` (PyPI) are all v2.2.0.
+  - Simplifies compatibility - no version matrix needed.
+- **CORE VERSION**: Now downloads `capiscio-core` v2.2.0.
+
 ## [2.1.3] - 2025-12-10
 
 ### Changed

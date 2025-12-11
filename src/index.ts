@@ -17,7 +17,7 @@
  * ```
  */
 
-export const version = '2.1.3';
+export const version = '2.2.0';
 
 // Re-export binary manager for advanced users who want to manage the binary
 export { BinaryManager } from './utils/binary-manager';
