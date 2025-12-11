@@ -3,6 +3,25 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
+// Mock stream pipeline
+vi.mock('stream', async (importOriginal) => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    default: {
+      ...actual.default,
+      pipeline: (source: any, dest: any, cb: any) => {
+        if (cb) cb(null);
+        return { on: vi.fn() };
+      },
+    },
+    pipeline: (source: any, dest: any, cb: any) => {
+        if (cb) cb(null);
+        return { on: vi.fn() };
+    }
+  };
+});
+
 // Mock modules before imports
 vi.mock('fs');
 vi.mock('axios');
@@ -294,12 +313,14 @@ describe('Install functionality', () => {
     vi.mocked(fs.rmSync).mockReturnValue(undefined);
     
     // Mock axios response
-    const mockStream = {
+    const mockStream: any = {
       pipe: vi.fn().mockReturnThis(),
       on: vi.fn((event, cb) => {
         if (event === 'end') cb();
         return mockStream;
       }),
+      once: vi.fn(),
+      emit: vi.fn(),
     };
     vi.mocked(axios.default.get).mockResolvedValue({ data: mockStream });
     
