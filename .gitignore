@@ -5,6 +5,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Binaries
+bin/capiscio-core
+bin/capiscio-core.exe
+
 # Build outputs
 dist/
 build/
