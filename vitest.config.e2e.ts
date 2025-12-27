@@ -2,11 +2,8 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    // E2E tests run against a live server
+    // E2E tests run the CLI offline
     environment: 'node',
-    
-    // Setup file to wait for server
-    setupFiles: ['./tests/e2e/setup.ts'],
     
     // Include only E2E tests
     include: ['tests/e2e/**/*.e2e.test.ts'],
