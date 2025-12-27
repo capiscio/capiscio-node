@@ -1,0 +1,9 @@
+{
+  "version": "1.0",
+  "did": "invalid-did-format",
+  "name": "Invalid Agent",
+  "publicKey": {
+    "kty": "WRONG",
+    "x": "invalid-key-data"
+  }
+}

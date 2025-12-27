@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "did": "did:web:example.com:agents:test-agent",
+  "name": "Test Agent",
+  "description": "A test agent for E2E validation tests",
+  "publicKey": {
+    "kty": "OKP",
+    "crv": "Ed25519",
+    "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"
+  },
+  "endpoints": {
+    "serviceEndpoint": "https://example.com/agent"
+  },
+  "trust": {
+    "level": 0,
+    "verifiedDomains": []
+  },
+  "metadata": {
+    "createdAt": "2025-01-01T00:00:00Z",
+    "updatedAt": "2025-01-01T00:00:00Z"
+  }
+}

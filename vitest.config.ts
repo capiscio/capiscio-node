@@ -25,6 +25,7 @@ export default defineConfig({
         'src/**/*.test.ts',
         'src/**/*.spec.ts',
         'src/__tests__/**',
+        'tests/**',
         'src/cli.ts' // CLI entry point is tested via integration
       ],
       // Coverage thresholds - fail if below 70%
