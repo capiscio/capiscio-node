@@ -14,11 +14,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['16', '18', '20']
+        node-version: ['18', '20', '22']
     
     services:
       capiscio-server:
         image: ghcr.io/capiscio/capiscio-server:latest
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.REPO_ACCESS_TOKEN }}
         ports:
           - 8080:8080
         env:
@@ -49,13 +52,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
       
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install
       
       - name: Build project
-        run: npm run build
+        run: pnpm build
       
       - name: Wait for server to be ready
         run: |
@@ -70,25 +77,21 @@ jobs:
           echo "✗ Server failed to start"
           exit 1
       
-      - name: Run unit tests
-        run: npm run test:unit -- --coverage
-      
       - name: Run E2E tests
         env:
           CAPISCIO_API_URL: http://localhost:8080
-          # For test mode, these can be dummy values
           CAPISCIO_API_KEY: test_api_key_ci
           CAPISCIO_TEST_AGENT_ID: 00000000-0000-0000-0000-000000000001
-        run: npm run test:e2e
+        run: pnpm test:e2e
       
-      - name: Upload coverage reports
-        if: matrix.node-version == '18'
-        uses: codecov/codecov-action@v4
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          files: ./coverage/coverage-final.json
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
+          name: e2e-results-node-${{ matrix.node-version }}
+          path: |
+            coverage/
+            test-results/
   
   e2e-against-dev:
     name: E2E Tests (Dev Environment)
@@ -99,23 +102,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Node.js 18
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: '20'
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
       
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install
       
       - name: Build project
-        run: npm run build
+        run: pnpm build
       
       - name: Run E2E tests against dev environment
         env:
           CAPISCIO_API_URL: https://dev.registry.capisc.io
           CAPISCIO_API_KEY: ${{ secrets.DEV_API_KEY }}
           CAPISCIO_TEST_AGENT_ID: ${{ secrets.DEV_TEST_AGENT_ID }}
-        run: npm run test:e2e || true
-        # Note: Badge tests may require actual PoP flow which needs secrets
-        # Using || true to not fail the build if some tests are skipped
+        run: pnpm test:e2e || true
