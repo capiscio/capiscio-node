@@ -39,11 +39,11 @@ npm install -g capiscio
 # Validate an agent card
 capiscio validate ./agent-card.json
 
-# Validate with JSON output (includes scores)
+# Validate with JSON output
 capiscio validate ./agent-card.json --json
 
 # Issue a self-signed badge (development)
-capiscio badge issue --self-sign
+capiscio badge issue --self-sign --sub did:web:example.com:agents:my-agent
 
 # Check core version
 capiscio --version
