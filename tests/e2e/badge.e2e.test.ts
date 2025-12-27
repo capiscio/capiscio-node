@@ -31,6 +31,14 @@ async function runCapiscio(
   }
 }
 
+/**
+ * Helper to get the token from output - handles potential download messages
+ */
+function extractToken(stdout: string): string {
+  const lines = stdout.trim().split('\n');
+  return lines[lines.length - 1].trim();
+}
+
 describe('badge commands', () => {
   describe('badge issue', () => {
     it('should issue a self-signed badge', async () => {
@@ -42,8 +50,9 @@ describe('badge commands', () => {
       expect(result.exitCode).toBe(0);
       
       // Output should contain a JWT token (has dots for header.payload.signature)
-      const output = result.stdout.trim();
-      expect(output.split('.').length).toBe(3); // JWT format
+      // Get last line in case there are download messages
+      const token = extractToken(result.stdout);
+      expect(token.split('.').length).toBe(3); // JWT format
     }, 15000);
 
     it('should issue badge with custom expiration', async () => {
@@ -52,8 +61,8 @@ describe('badge commands', () => {
       ]);
 
       expect(result.exitCode).toBe(0);
-      const output = result.stdout.trim();
-      expect(output.split('.').length).toBe(3);
+      const token = extractToken(result.stdout);
+      expect(token.split('.').length).toBe(3);
     }, 15000);
 
     it('should issue badge with audience restriction', async () => {
@@ -62,8 +71,8 @@ describe('badge commands', () => {
       ]);
 
       expect(result.exitCode).toBe(0);
-      const output = result.stdout.trim();
-      expect(output.split('.').length).toBe(3);
+      const token = extractToken(result.stdout);
+      expect(token.split('.').length).toBe(3);
     }, 15000);
 
     it('should display help for badge issue', async () => {
@@ -83,7 +92,7 @@ describe('badge commands', () => {
         'badge', 'issue', '--self-sign', '--domain', 'test.example.com'
       ]);
       expect(issueResult.exitCode).toBe(0);
-      const token = issueResult.stdout.trim();
+      const token = extractToken(issueResult.stdout);
 
       // Then verify it with --accept-self-signed
       const verifyResult = await runCapiscio([
