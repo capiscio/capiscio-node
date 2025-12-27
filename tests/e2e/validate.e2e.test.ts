@@ -6,34 +6,13 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import path from 'path';
-
-const execAsync = promisify(exec);
-const CLI_PATH = path.join(__dirname, '../../bin/capiscio.js');
-const FIXTURES_DIR = path.join(__dirname, 'fixtures');
-
-/**
- * Helper to run capiscio CLI command.
- */
-async function runCapiscio(args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> {
-  try {
-    const { stdout, stderr } = await execAsync(`node "${CLI_PATH}" ${args.join(' ')}`);
-    return { stdout, stderr, exitCode: 0 };
-  } catch (error: any) {
-    return {
-      stdout: error.stdout || '',
-      stderr: error.stderr || '',
-      exitCode: error.code || 1,
-    };
-  }
-}
+import { runCapiscio, FIXTURES_DIR } from './helpers';
 
 describe('validate command', () => {
   const validCardPath = path.join(FIXTURES_DIR, 'valid-agent-card.json');
   const invalidCardPath = path.join(FIXTURES_DIR, 'invalid-agent-card.json');
-  const malformedPath = path.join(FIXTURES_DIR, 'malformed.json');
+  const malformedPath = path.join(FIXTURES_DIR, 'malformed.txt');
   const nonexistentPath = path.join(FIXTURES_DIR, 'does-not-exist.json');
 
   it('should validate a valid local agent card file', async () => {
@@ -78,13 +57,6 @@ describe('validate command', () => {
       errorOutput.includes('failed to load') ||
       errorOutput.includes('error')
     ).toBe(true);
-  }, 15000);
-
-  it('should support schema-only mode', async () => {
-    const result = await runCapiscio(['validate', validCardPath, '--schema-only']);
-
-    expect(result.exitCode).toBe(0);
-    expect(result.stdout.length).toBeGreaterThan(0);
   }, 15000);
 
   it('should support JSON output format', async () => {

@@ -6,38 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import path from 'path';
-
-const execAsync = promisify(exec);
-const CLI_PATH = path.join(__dirname, '../../bin/capiscio.js');
-
-async function runCapiscio(
-  args: string[],
-  env?: Record<string, string>
-): Promise<{ stdout: string; stderr: string; exitCode: number }> {
-  try {
-    const { stdout, stderr } = await execAsync(`node "${CLI_PATH}" ${args.join(' ')}`, {
-      env: { ...process.env, ...env },
-    });
-    return { stdout, stderr, exitCode: 0 };
-  } catch (error: any) {
-    return {
-      stdout: error.stdout || '',
-      stderr: error.stderr || '',
-      exitCode: error.code || 1,
-    };
-  }
-}
-
-/**
- * Helper to get the token from output - handles potential download messages
- */
-function extractToken(stdout: string): string {
-  const lines = stdout.trim().split('\n');
-  return lines[lines.length - 1].trim();
-}
+import { runCapiscio, extractToken } from './helpers';
 
 describe('badge commands', () => {
   describe('badge issue', () => {
