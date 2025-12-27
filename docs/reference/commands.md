@@ -79,7 +79,7 @@ capiscio badge issue [flags]
 | Flag | Description |
 |------|-------------|
 | `--self-sign` | Issue self-signed badge for development |
-| `--level <1-3>` | Trust level (1=DV, 2=OV, 3=EV) |
+| `--level <1-3>` | Trust level (1=Domain Validation, 2=Organization Validation, 3=Extended Validation) |
 | `--sub <did>` | Subject DID (did:web format) |
 | `--aud <urls>` | Audience (comma-separated URLs) |
 | `--exp <duration>` | Expiration duration (default: 5m) |
@@ -93,8 +93,8 @@ capiscio badge issue [flags]
 # Self-signed badge for development
 capiscio badge issue --self-sign --sub did:web:example.com:agents:my-agent
 
-# With specific trust level
-capiscio badge issue --self-sign --level 2 --domain example.com
+# CA-issued badge with specific trust level
+capiscio badge issue --level 2 --domain example.com --key ca-private.jwk
 
 # With audience restriction
 capiscio badge issue --self-sign --aud "https://api.example.com,https://backup.example.com"
@@ -114,7 +114,7 @@ capiscio badge verify <token> [flags]
 |------|-------------|
 | `--key <path>` | Path to public key file (JWK) |
 | `--offline` | Offline mode (uses trust store) |
-| `--audience <url>` | Verifier's identity for audience validation |
+| `--audience <url>` | Expected audience claim value (verifies the badge is intended for this URL) |
 | `--skip-revocation` | Skip revocation check (testing only) |
 | `--skip-agent-status` | Skip agent status check (testing only) |
 | `--trusted-issuers <urls>` | Comma-separated list of trusted issuer URLs |
@@ -129,7 +129,7 @@ capiscio badge verify "eyJhbGciOiJFZERTQSJ9..." --key ca-public.jwk
 capiscio badge verify "eyJhbGciOiJFZERTQSJ9..." --offline
 
 # With audience validation
-capiscio badge verify "eyJhbGciOiJFZERTQSJ9..." --key ca.jwk --audience https://api.example.com
+capiscio badge verify "eyJhbGciOiJFZERTQSJ9..." --key ca-public.jwk --audience https://api.example.com
 ```
 
 #### badge keep
@@ -150,6 +150,19 @@ capiscio badge keep [flags]
 | `--exp <duration>` | Expiration duration (default: 5m) |
 | `--renew-before <duration>` | Time before expiry to renew (default: 1m) |
 | `--check-interval <duration>` | Interval to check for renewal (default: 30s) |
+
+**Examples:**
+
+```bash
+# Run daemon with self-signed badges
+capiscio badge keep --self-sign --key private.jwk --out badge.jwt
+
+# Custom renewal timing (renew 2 minutes before expiry, check every 10s)
+capiscio badge keep --self-sign --key private.jwk --renew-before 2m --check-interval 10s
+
+# With custom expiration
+capiscio badge keep --self-sign --key private.jwk --exp 1h --out /var/run/badge.jwt
+```
 
 ---
 
@@ -189,6 +202,19 @@ capiscio trust [command]
 - `remove` - Remove a CA key from the trust store
 
 **Location:** `~/.capiscio/trust/` (or `$CAPISCIO_TRUST_PATH`)
+
+**Examples:**
+
+```bash
+# Add a CA public key to the trust store
+capiscio trust add ca-public.jwk
+
+# List all trusted CA keys
+capiscio trust list
+
+# Remove a CA key by fingerprint
+capiscio trust remove abc123def456
+```
 
 ---
 
