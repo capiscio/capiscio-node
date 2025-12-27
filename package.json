@@ -38,14 +38,17 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "test": "vitest run",
-    "test:watch": "vitest --watch",
-    "test:coverage": "vitest run --coverage",
+    "test": "vitest run --config vitest.config.ts --dir tests/unit",
+    "test:unit": "vitest run --config vitest.config.ts --dir tests/unit",
+    "test:e2e": "vitest run --config vitest.config.e2e.ts",
+    "test:watch": "vitest --watch --config vitest.config.ts --dir tests/unit",
+    "test:coverage": "vitest run --coverage --config vitest.config.ts --dir tests/unit",
+    "test:all": "npm run test:unit && npm run test:e2e",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "prepublishOnly": "npm run clean && npm run build && npm test",
+    "prepublishOnly": "npm run clean && npm run build && npm run test:unit",
     "start": "node bin/capiscio.js"
   },
   "dependencies": {
