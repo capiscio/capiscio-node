@@ -54,7 +54,7 @@ describe('BinaryManager', () => {
 
   describe('getInstance', () => {
     it('should be a singleton', async () => {
-      const { BinaryManager } = await import('../utils/binary-manager');
+      const { BinaryManager } = await import('../../src/utils/binary-manager');
       const instance1 = BinaryManager.getInstance();
       const instance2 = BinaryManager.getInstance();
       expect(instance1).toBe(instance2);
@@ -63,7 +63,7 @@ describe('BinaryManager', () => {
     it('should create bin directory if it does not exist', async () => {
       vi.mocked(fs.existsSync).mockReturnValue(false);
       
-      const { BinaryManager } = await import('../utils/binary-manager');
+      const { BinaryManager } = await import('../../src/utils/binary-manager');
       BinaryManager.getInstance();
       
       expect(fs.mkdirSync).toHaveBeenCalled();
@@ -81,7 +81,7 @@ describe('BinaryManager', () => {
         return undefined;
       });
       
-      const { BinaryManager } = await import('../utils/binary-manager');
+      const { BinaryManager } = await import('../../src/utils/binary-manager');
       const instance = BinaryManager.getInstance();
       
       expect(instance).toBeDefined();
@@ -92,7 +92,7 @@ describe('BinaryManager', () => {
     it('should map darwin correctly', async () => {
       vi.spyOn(os, 'platform').mockReturnValue('darwin');
       
-      const { BinaryManager } = await import('../utils/binary-manager');
+      const { BinaryManager } = await import('../../src/utils/binary-manager');
       const instance = BinaryManager.getInstance();
       
       expect(instance).toBeDefined();
@@ -101,7 +101,7 @@ describe('BinaryManager', () => {
     it('should map linux correctly', async () => {
       vi.spyOn(os, 'platform').mockReturnValue('linux');
       
-      const { BinaryManager } = await import('../utils/binary-manager');
+      const { BinaryManager } = await import('../../src/utils/binary-manager');
       const instance = BinaryManager.getInstance();
       
       expect(instance).toBeDefined();
@@ -110,7 +110,7 @@ describe('BinaryManager', () => {
     it('should map win32 to windows', async () => {
       vi.spyOn(os, 'platform').mockReturnValue('win32');
       
-      const { BinaryManager } = await import('../utils/binary-manager');
+      const { BinaryManager } = await import('../../src/utils/binary-manager');
       const instance = BinaryManager.getInstance();
       
       expect(instance).toBeDefined();
@@ -119,7 +119,7 @@ describe('BinaryManager', () => {
     it('should throw for unsupported platform', async () => {
       vi.spyOn(os, 'platform').mockReturnValue('freebsd' as NodeJS.Platform);
       
-      const { BinaryManager } = await import('../utils/binary-manager');
+      const { BinaryManager } = await import('../../src/utils/binary-manager');
       
       expect(() => BinaryManager.getInstance()).toThrow('Unsupported platform: freebsd');
     });
@@ -129,7 +129,7 @@ describe('BinaryManager', () => {
     it('should map x64 to amd64', async () => {
       vi.spyOn(os, 'arch').mockReturnValue('x64');
       
-      const { BinaryManager } = await import('../utils/binary-manager');
+      const { BinaryManager } = await import('../../src/utils/binary-manager');
       const instance = BinaryManager.getInstance();
       
       expect(instance).toBeDefined();
@@ -138,7 +138,7 @@ describe('BinaryManager', () => {
     it('should handle arm64', async () => {
       vi.spyOn(os, 'arch').mockReturnValue('arm64');
       
-      const { BinaryManager } = await import('../utils/binary-manager');
+      const { BinaryManager } = await import('../../src/utils/binary-manager');
       const instance = BinaryManager.getInstance();
       
       expect(instance).toBeDefined();
@@ -154,7 +154,7 @@ describe('BinaryManager', () => {
       process.env.CAPISCIO_CORE_PATH = customPath;
       vi.mocked(fs.existsSync).mockImplementation((p) => String(p) === customPath || true);
       
-      const { BinaryManager } = await import('../utils/binary-manager');
+      const { BinaryManager } = await import('../../src/utils/binary-manager');
       const instance = BinaryManager.getInstance();
       const result = await instance.getBinaryPath();
       
@@ -173,7 +173,7 @@ describe('BinaryManager', () => {
         return true; // Binary exists in default location
       });
       
-      const { BinaryManager } = await import('../utils/binary-manager');
+      const { BinaryManager } = await import('../../src/utils/binary-manager');
       const instance = BinaryManager.getInstance();
       await instance.getBinaryPath();
       
@@ -186,7 +186,7 @@ describe('BinaryManager', () => {
     it('should return existing binary path without downloading', async () => {
       vi.mocked(fs.existsSync).mockReturnValue(true);
       
-      const { BinaryManager } = await import('../utils/binary-manager');
+      const { BinaryManager } = await import('../../src/utils/binary-manager');
       const instance = BinaryManager.getInstance();
       const result = await instance.getBinaryPath();
       
@@ -203,12 +203,12 @@ describe('CLI Package', () => {
   });
 
   it('should export version', async () => {
-    const { version } = await import('../index');
+    const { version } = await import('../../src/index');
     expect(version).toBe('2.2.0');
   });
 
   it('should export BinaryManager', async () => {
-    const { BinaryManager: ExportedBinaryManager } = await import('../index');
+    const { BinaryManager: ExportedBinaryManager } = await import('../../src/index');
     expect(ExportedBinaryManager).toBeDefined();
     expect(typeof ExportedBinaryManager.getInstance).toBe('function');
   });
@@ -224,7 +224,7 @@ describe('Binary naming', () => {
   it('should add .exe extension on Windows', async () => {
     vi.spyOn(os, 'platform').mockReturnValue('win32');
     
-    const { BinaryManager } = await import('../utils/binary-manager');
+    const { BinaryManager } = await import('../../src/utils/binary-manager');
     const instance = BinaryManager.getInstance();
     const binaryPath = await instance.getBinaryPath();
     
@@ -234,7 +234,7 @@ describe('Binary naming', () => {
   it('should not add .exe extension on Unix platforms', async () => {
     vi.spyOn(os, 'platform').mockReturnValue('darwin');
     
-    const { BinaryManager } = await import('../utils/binary-manager');
+    const { BinaryManager } = await import('../../src/utils/binary-manager');
     const instance = BinaryManager.getInstance();
     const binaryPath = await instance.getBinaryPath();
     
@@ -256,7 +256,7 @@ describe('Version handling', () => {
   it('should use default version when env var not set', async () => {
     delete process.env.CAPISCIO_CORE_VERSION;
     
-    const { BinaryManager } = await import('../utils/binary-manager');
+    const { BinaryManager } = await import('../../src/utils/binary-manager');
     const instance = BinaryManager.getInstance();
     
     expect(instance).toBeDefined();
@@ -266,7 +266,7 @@ describe('Version handling', () => {
   it('should respect CAPISCIO_CORE_VERSION env var', async () => {
     process.env.CAPISCIO_CORE_VERSION = 'v2.0.0';
     
-    const { BinaryManager } = await import('../utils/binary-manager');
+    const { BinaryManager } = await import('../../src/utils/binary-manager');
     const instance = BinaryManager.getInstance();
     
     expect(instance).toBeDefined();
@@ -323,7 +323,7 @@ describe('Install functionality', () => {
     };
     vi.mocked(axios.default.get).mockResolvedValue({ data: mockStream });
     
-    const { BinaryManager } = await import('../utils/binary-manager');
+    const { BinaryManager } = await import('../../src/utils/binary-manager');
     const instance = BinaryManager.getInstance();
     
     // This should trigger install since binary doesn't exist
@@ -356,7 +356,7 @@ describe('Install functionality', () => {
     
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     
-    const { BinaryManager } = await import('../utils/binary-manager');
+    const { BinaryManager } = await import('../../src/utils/binary-manager');
     const instance = BinaryManager.getInstance();
     
     await expect(instance.getBinaryPath()).rejects.toEqual(mockError);
@@ -385,7 +385,7 @@ describe('Install functionality', () => {
     
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     
-    const { BinaryManager } = await import('../utils/binary-manager');
+    const { BinaryManager } = await import('../../src/utils/binary-manager');
     const instance = BinaryManager.getInstance();
     
     await expect(instance.getBinaryPath()).rejects.toEqual(mockError);
@@ -411,7 +411,7 @@ describe('Install functionality', () => {
     
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     
-    const { BinaryManager } = await import('../utils/binary-manager');
+    const { BinaryManager } = await import('../../src/utils/binary-manager');
     const instance = BinaryManager.getInstance();
     
     await expect(instance.getBinaryPath()).rejects.toThrow('Unknown error');
@@ -434,7 +434,7 @@ describe('findPackageRoot', () => {
     });
     vi.mocked(fs.mkdirSync).mockReturnValue(undefined);
     
-    const { BinaryManager } = await import('../utils/binary-manager');
+    const { BinaryManager } = await import('../../src/utils/binary-manager');
     const instance = BinaryManager.getInstance();
     
     expect(instance).toBeDefined();
@@ -448,7 +448,7 @@ describe('findPackageRoot', () => {
     });
     vi.mocked(fs.mkdirSync).mockReturnValue(undefined);
     
-    const { BinaryManager } = await import('../utils/binary-manager');
+    const { BinaryManager } = await import('../../src/utils/binary-manager');
     const instance = BinaryManager.getInstance();
     
     expect(instance).toBeDefined();
