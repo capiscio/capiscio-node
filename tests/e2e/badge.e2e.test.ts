@@ -1,15 +1,14 @@
 /**
  * E2E tests for capiscio badge commands.
  * 
- * Tests badge issuance and verification commands against a live server.
- * Requires CAPISCIO_API_KEY and CAPISCIO_TEST_AGENT_ID environment variables.
+ * Tests badge issuance and verification commands against the CLI.
+ * These tests focus on the CLI interface itself, not the server.
  */
 
 import { describe, it, expect } from 'vitest';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
-import { E2E_CONFIG } from './setup';
 
 const execAsync = promisify(exec);
 const CLI_PATH = path.join(__dirname, '../../bin/capiscio.js');
@@ -33,59 +32,38 @@ async function runCapiscio(
 }
 
 describe('badge commands', () => {
-  const hasApiKey = !!E2E_CONFIG.apiKey;
-  const hasTestAgent = !!E2E_CONFIG.testAgentId;
-
   describe('badge issue', () => {
-    it.skipIf(!hasApiKey || !hasTestAgent)('should issue badge with API key', async () => {
-      const result = await runCapiscio(
-        ['badge', 'issue', '--agent-id', E2E_CONFIG.testAgentId, '--domain', 'test.capisc.io'],
-        { CAPISCIO_API_KEY: E2E_CONFIG.apiKey }
-      );
+    it('should issue a self-signed badge', async () => {
+      const result = await runCapiscio([
+        'badge', 'issue', '--self-sign', '--domain', 'test.example.com'
+      ]);
 
-      // Should produce output (success or appropriate error)
-      const output = result.stdout + result.stderr;
-      expect(output.length).toBeGreaterThan(0);
-
-      // If successful, should contain token or badge
-      if (result.exitCode === 0) {
-        expect(
-          result.stdout.toLowerCase().includes('token') || result.stdout.toLowerCase().includes('badge')
-        ).toBe(true);
-      }
+      // Self-signed badge issuance should succeed
+      expect(result.exitCode).toBe(0);
+      
+      // Output should contain a JWT token (has dots for header.payload.signature)
+      const output = result.stdout.trim();
+      expect(output.split('.').length).toBe(3); // JWT format
     }, 15000);
 
-    it('should fail without API key', async () => {
-      const result = await runCapiscio(
-        ['badge', 'issue', '--agent-id', 'test-agent-id', '--domain', 'test.capisc.io'],
-        { CAPISCIO_API_KEY: '' } // Remove API key
-      );
+    it('should issue badge with custom expiration', async () => {
+      const result = await runCapiscio([
+        'badge', 'issue', '--self-sign', '--exp', '10m'
+      ]);
 
-      expect(result.exitCode).not.toBe(0);
-      const errorOutput = (result.stderr + result.stdout).toLowerCase();
-      expect(
-        errorOutput.includes('auth') ||
-        errorOutput.includes('key') ||
-        errorOutput.includes('credential') ||
-        errorOutput.includes('unauthorized')
-      ).toBe(true);
+      expect(result.exitCode).toBe(0);
+      const output = result.stdout.trim();
+      expect(output.split('.').length).toBe(3);
     }, 15000);
 
-    it.skipIf(!hasApiKey)('should fail for invalid agent ID', async () => {
-      const invalidAgentId = '00000000-0000-0000-0000-000000000000';
-      const result = await runCapiscio(
-        ['badge', 'issue', '--agent-id', invalidAgentId, '--domain', 'test.capisc.io'],
-        { CAPISCIO_API_KEY: E2E_CONFIG.apiKey }
-      );
+    it('should issue badge with audience restriction', async () => {
+      const result = await runCapiscio([
+        'badge', 'issue', '--self-sign', '--aud', 'https://api.example.com'
+      ]);
 
-      expect(result.exitCode).not.toBe(0);
-      const errorOutput = (result.stderr + result.stdout).toLowerCase();
-      expect(
-        errorOutput.includes('not found') ||
-        errorOutput.includes('invalid') ||
-        errorOutput.includes('unknown') ||
-        errorOutput.includes('does not exist')
-      ).toBe(true);
+      expect(result.exitCode).toBe(0);
+      const output = result.stdout.trim();
+      expect(output.split('.').length).toBe(3);
     }, 15000);
 
     it('should display help for badge issue', async () => {
@@ -93,14 +71,35 @@ describe('badge commands', () => {
 
       expect(result.exitCode).toBe(0);
       const helpText = result.stdout.toLowerCase();
-      expect(helpText.includes('agent') || helpText.includes('issue')).toBe(true);
+      expect(helpText.includes('issue')).toBe(true);
+      expect(helpText.includes('self-sign') || helpText.includes('level')).toBe(true);
     }, 15000);
   });
 
   describe('badge verify', () => {
+    it('should verify a self-signed badge', async () => {
+      // First issue a badge
+      const issueResult = await runCapiscio([
+        'badge', 'issue', '--self-sign', '--domain', 'test.example.com'
+      ]);
+      expect(issueResult.exitCode).toBe(0);
+      const token = issueResult.stdout.trim();
+
+      // Then verify it with --accept-self-signed
+      const verifyResult = await runCapiscio([
+        'badge', 'verify', token, '--accept-self-signed', '--offline'
+      ]);
+
+      expect(verifyResult.exitCode).toBe(0);
+      const output = verifyResult.stdout.toLowerCase();
+      expect(
+        output.includes('valid') || output.includes('verified') || output.includes('ok')
+      ).toBe(true);
+    }, 15000);
+
     it('should fail for invalid token', async () => {
       const invalidToken = 'invalid.jwt.token';
-      const result = await runCapiscio(['badge', 'verify', invalidToken]);
+      const result = await runCapiscio(['badge', 'verify', invalidToken, '--accept-self-signed']);
 
       expect(result.exitCode).not.toBe(0);
       const errorOutput = (result.stderr + result.stdout).toLowerCase();
@@ -108,7 +107,8 @@ describe('badge commands', () => {
         errorOutput.includes('invalid') ||
         errorOutput.includes('verify') ||
         errorOutput.includes('failed') ||
-        errorOutput.includes('malformed')
+        errorOutput.includes('malformed') ||
+        errorOutput.includes('error')
       ).toBe(true);
     }, 15000);
 

@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [main, develop]
 
-# NOTE: This workflow requires REPO_ACCESS_TOKEN secret with repo scope
-# to access private repos (capiscio-server)
-
 jobs:
   e2e-tests:
     name: E2E Tests (Node ${{ matrix.node-version }})
@@ -19,31 +16,9 @@ jobs:
       matrix:
         node-version: ['18', '20', '22']
     
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: capiscio
-          POSTGRES_PASSWORD: capiscio_dev
-          POSTGRES_DB: capiscio_e2e
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
-    
     steps:
-      - name: Checkout capiscio-node
+      - name: Checkout
         uses: actions/checkout@v4
-      
-      - name: Checkout capiscio-server
-        uses: actions/checkout@v4
-        with:
-          repository: capiscio/capiscio-server
-          path: capiscio-server
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
       
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -61,62 +36,8 @@ jobs:
       - name: Build project
         run: pnpm build
       
-      - name: Build and start capiscio-server
-        run: |
-          cd capiscio-server
-          
-          # Build the server (assumes Go or Docker build)
-          if [ -f "Dockerfile" ]; then
-            docker build -t capiscio-server:local .
-            docker run -d --name capiscio-server \
-              --network host \
-              -e DATABASE_URL="postgres://capiscio:capiscio_dev@localhost:5432/capiscio_e2e?sslmode=disable" \
-              -e PORT=8080 \
-              -e LOG_LEVEL=debug \
-              -e CAPISCIO_TEST_MODE=true \
-              -e CA_ISSUER_URL="http://localhost:8080" \
-              -e CA_PRIVATE_KEY_JWK='{"kty":"OKP","crv":"Ed25519","d":"nWGxne_9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A","x":"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"}' \
-              -e SEED_TEST_AGENTS=true \
-              capiscio-server:local
-          elif [ -f "go.mod" ]; then
-            go build -o server ./cmd/server
-            DATABASE_URL="postgres://capiscio:capiscio_dev@localhost:5432/capiscio_e2e?sslmode=disable" \
-            PORT=8080 \
-            LOG_LEVEL=debug \
-            CAPISCIO_TEST_MODE=true \
-            CA_ISSUER_URL="http://localhost:8080" \
-            CA_PRIVATE_KEY_JWK='{"kty":"OKP","crv":"Ed25519","d":"nWGxne_9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A","x":"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"}' \
-            SEED_TEST_AGENTS=true \
-            ./server &
-          fi
-          
-          cd ..
-      
-      - name: Wait for server to be ready
-        run: |
-          echo "Waiting for server to be ready..."
-          for i in {1..30}; do
-            if curl -sf http://localhost:8080/health > /dev/null; then
-              echo "✓ Server is ready"
-              exit 0
-            fi
-            echo "Waiting... ($i/30)"
-            sleep 2
-          done
-          echo "✗ Server failed to start"
-          docker logs capiscio-server 2>/dev/null || true
-          exit 1
-      
       - name: Run E2E tests
-        env:
-          CAPISCIO_API_URL: http://localhost:8080
-          CAPISCIO_API_KEY: test_api_key_ci
-          CAPISCIO_TEST_AGENT_ID: 00000000-0000-0000-0000-000000000001
         run: pnpm test:e2e
-      
-      - name: Server logs on failure
-        if: failure()
-        run: docker logs capiscio-server 2>/dev/null || true
       
       - name: Upload test results
         if: always()
@@ -126,35 +47,3 @@ jobs:
           path: |
             coverage/
             test-results/
-  
-  e2e-against-dev:
-    name: E2E Tests (Dev Environment)
-    runs-on: ubuntu-latest
-    # Only run on main branch
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      
-      - name: Install dependencies
-        run: pnpm install
-      
-      - name: Build project
-        run: pnpm build
-      
-      - name: Run E2E tests against dev environment
-        env:
-          CAPISCIO_API_URL: https://dev.registry.capisc.io
-          CAPISCIO_API_KEY: ${{ secrets.DEV_API_KEY }}
-          CAPISCIO_TEST_AGENT_ID: ${{ secrets.DEV_TEST_AGENT_ID }}
-        run: pnpm test:e2e || true

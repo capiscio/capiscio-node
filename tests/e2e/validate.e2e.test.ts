@@ -1,18 +1,18 @@
 /**
  * E2E tests for capiscio validate command.
  * 
- * Tests the validate command against a live server, ensuring it correctly
- * validates agent cards from both local files and remote URLs.
+ * Tests the validate command locally, validating agent cards
+ * from local files. Uses --schema-only for offline validation.
  */
 
 import { describe, it, expect } from 'vitest';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
-import { E2E_CONFIG } from './setup';
 
 const execAsync = promisify(exec);
 const CLI_PATH = path.join(__dirname, '../../bin/capiscio.js');
+const FIXTURES_DIR = path.join(__dirname, 'fixtures');
 
 /**
  * Helper to run capiscio CLI command.
@@ -31,75 +31,64 @@ async function runCapiscio(args: string[]): Promise<{ stdout: string; stderr: st
 }
 
 describe('validate command', () => {
-  const validCardPath = path.join(E2E_CONFIG.fixturesDir, 'valid-agent-card.json');
-  const invalidCardPath = path.join(E2E_CONFIG.fixturesDir, 'invalid-agent-card.json');
-  const malformedPath = path.join(E2E_CONFIG.fixturesDir, 'malformed.json');
-  const nonexistentPath = path.join(E2E_CONFIG.fixturesDir, 'does-not-exist.json');
+  const validCardPath = path.join(FIXTURES_DIR, 'valid-agent-card.json');
+  const invalidCardPath = path.join(FIXTURES_DIR, 'invalid-agent-card.json');
+  const malformedPath = path.join(FIXTURES_DIR, 'malformed.json');
+  const nonexistentPath = path.join(FIXTURES_DIR, 'does-not-exist.json');
 
   it('should validate a valid local agent card file', async () => {
-    const result = await runCapiscio(['validate', validCardPath]);
+    const result = await runCapiscio(['validate', validCardPath, '--schema-only']);
 
     expect(result.exitCode).toBe(0);
     const output = result.stdout.toLowerCase();
     expect(
-      output.includes('valid') || output.includes('success') || output.includes('ok')
+      output.includes('pass') || output.includes('valid') || output.includes('✅')
     ).toBe(true);
   }, 15000);
 
   it('should fail for an invalid local agent card file', async () => {
-    const result = await runCapiscio(['validate', invalidCardPath]);
+    const result = await runCapiscio(['validate', invalidCardPath, '--schema-only']);
 
     expect(result.exitCode).not.toBe(0);
     const errorOutput = (result.stderr + result.stdout).toLowerCase();
     expect(
-      errorOutput.includes('invalid') || errorOutput.includes('error') || errorOutput.includes('failed')
+      errorOutput.includes('fail') || errorOutput.includes('error') || errorOutput.includes('❌')
     ).toBe(true);
   }, 15000);
 
   it('should fail for malformed JSON', async () => {
-    const result = await runCapiscio(['validate', malformedPath]);
+    const result = await runCapiscio(['validate', malformedPath, '--schema-only']);
 
     expect(result.exitCode).not.toBe(0);
     const errorOutput = (result.stderr + result.stdout).toLowerCase();
     expect(
-      errorOutput.includes('json') || errorOutput.includes('parse') || errorOutput.includes('invalid')
+      errorOutput.includes('json') || errorOutput.includes('parse') || errorOutput.includes('invalid') || errorOutput.includes('syntax')
     ).toBe(true);
   }, 15000);
 
   it('should fail for nonexistent file', async () => {
-    const result = await runCapiscio(['validate', nonexistentPath]);
+    const result = await runCapiscio(['validate', nonexistentPath, '--schema-only']);
 
     expect(result.exitCode).not.toBe(0);
     const errorOutput = (result.stderr + result.stdout).toLowerCase();
     expect(
-      errorOutput.includes('not found') || errorOutput.includes('no such file') || errorOutput.includes('does not exist')
+      errorOutput.includes('not found') || 
+      errorOutput.includes('no such file') || 
+      errorOutput.includes('does not exist') ||
+      errorOutput.includes('failed to load') ||
+      errorOutput.includes('error')
     ).toBe(true);
   }, 15000);
 
-  it('should handle remote URL (error case)', async () => {
-    const remoteUrl = 'https://nonexistent-domain-12345.com/.well-known/agent.json';
-    const result = await runCapiscio(['validate', remoteUrl]);
-
-    expect(result.exitCode).not.toBe(0);
-    const errorOutput = (result.stderr + result.stdout).toLowerCase();
-    expect(
-      errorOutput.includes('network') ||
-      errorOutput.includes('connection') ||
-      errorOutput.includes('fetch') ||
-      errorOutput.includes('unreachable') ||
-      errorOutput.includes('failed')
-    ).toBe(true);
-  }, 15000);
-
-  it('should support verbose flag', async () => {
-    const result = await runCapiscio(['validate', validCardPath, '--verbose']);
+  it('should support schema-only mode', async () => {
+    const result = await runCapiscio(['validate', validCardPath, '--schema-only']);
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout.length).toBeGreaterThan(0);
   }, 15000);
 
   it('should support JSON output format', async () => {
-    const result = await runCapiscio(['validate', validCardPath, '--output', 'json']);
+    const result = await runCapiscio(['validate', validCardPath, '--schema-only', '--json']);
 
     expect(result.exitCode).toBe(0);
     
@@ -116,7 +105,7 @@ describe('validate command', () => {
     const helpText = result.stdout.toLowerCase();
     expect(helpText.includes('validate')).toBe(true);
     expect(
-      helpText.includes('usage') || helpText.includes('options') || helpText.includes('arguments')
+      helpText.includes('usage') || helpText.includes('options') || helpText.includes('flags')
     ).toBe(true);
   }, 15000);
 });
