@@ -31,10 +31,10 @@ capiscio validate ./agent-card.json
 capiscio validate https://my-agent.example.com --json
 
 # Issue a self-signed badge (development)
-capiscio badge issue --self-sign
+capiscio badge issue --self-sign --sub did:web:example.com:agents:my-agent
 
-# Verify a badge
-capiscio badge verify "eyJhbGciOiJFZERTQSJ9..." --accept-self-signed
+# Verify a badge (offline mode)
+capiscio badge verify "eyJhbGciOiJFZERTQSJ9..." --offline
 
 # Check version
 capiscio --version
