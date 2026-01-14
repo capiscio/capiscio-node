@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.1] - 2025-01-14
+
+### Changed
+- **CORE VERSION**: Now downloads `capiscio-core` v2.3.1
+
+### Fixed
+- Aligned all version references across package metadata
+
+## [2.3.0] - 2025-01-13
+
+### Added
+- **E2E Test Suite**: Comprehensive end-to-end test coverage for CLI wrapper workflows
+- **Documentation**: Complete CLI documentation audit and restructure
+- **Dark Mode**: MkDocs documentation now supports dark mode
+
+### Fixed
+- **Documentation**: Removed duplicate documentation files causing build warnings
+- **Goal-Centric Navigation**: Restructured docs for goal-oriented navigation
+
+### Changed
+- **CORE VERSION**: Now downloads `capiscio-core` v2.3.0
+
 ## [2.2.0] - 2025-12-10
 
 ### Changed
