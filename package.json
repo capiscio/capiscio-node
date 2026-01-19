@@ -1,6 +1,6 @@
 {
   "name": "capiscio",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "description": "The official CapiscIO CLI tool for validating A2A agents",
   "keywords": [
     "a2a",
