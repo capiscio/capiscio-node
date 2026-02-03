@@ -1,6 +1,8 @@
 # GitHub Actions Workflows
 
-This directory contains the CI/CD workflows for the capiscio-cli project.
+This directory contains the CI/CD workflows for the `capiscio-node` project (npm package: `capiscio`).
+
+Core binaries are published from `capiscio-core` releases: https://github.com/capiscio/capiscio-core/releases
 
 ## Workflows
 

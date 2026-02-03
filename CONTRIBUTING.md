@@ -1,11 +1,14 @@
-# Contributing to CapiscIO CLI
+# Contributing to CapiscIO CLI (Node.js Wrapper)
 
-Thank you for your interest in contributing to CapiscIO CLI! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to the CapiscIO CLI wrapper! This repository is `capiscio-node`, and the published npm package name is `capiscio`.
+
+!!! note "Where the binaries come from"
+   This project downloads the `capiscio-core` GitHub Release binaries at runtime. Core binaries are published from https://github.com/capiscio/capiscio-core.
 
 ## 🚀 Quick Start
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/your-username/capiscio-cli.git`
+2. Clone your fork: `git clone https://github.com/your-username/capiscio-node.git`
 3. Install dependencies: `npm install`
 4. Create a feature branch: `git checkout -b feature/your-feature-name`
 5. Make your changes
@@ -43,7 +46,7 @@ git push origin main
 
 #### 2. Create Draft Release
 
-1. Go to [GitHub Releases](https://github.com/capiscio/capiscio-cli/releases)
+1. Go to [GitHub Releases](https://github.com/capiscio/capiscio-node/releases)
 2. Click "Create a new release"
 3. **Important**: Create as **Draft** (do not publish yet)
 4. Set tag version (e.g., `v1.2.3`)
@@ -54,7 +57,7 @@ git push origin main
 #### 3. Wait for Binary Upload
 
 1. The **Build and Release Binaries** workflow will trigger automatically
-2. Monitor the [Actions tab](https://github.com/capiscio/capiscio-cli/actions)
+2. Monitor the [Actions tab](https://github.com/capiscio/capiscio-node/actions)
 3. Wait for all binaries to be built and uploaded (~10-15 minutes)
 4. Verify assets appear in the draft release:
    - `capiscio-linux-x64.tar.gz`
@@ -97,8 +100,8 @@ git push origin main
 ### Installation
 
 ```bash
-git clone https://github.com/capiscio/capiscio-cli.git
-cd capiscio-cli
+git clone https://github.com/capiscio/capiscio-node.git
+cd capiscio-node
 npm install
 ```
 
