@@ -30,12 +30,49 @@ The **CapiscIO Node.js CLI** is a lightweight wrapper around the [CapiscIO Core]
 
 </div>
 
-## Quick Start
+## Quick Start: One-Command Identity Setup
+
+Get a complete agent identity, just like Let's Encrypt made HTTPS easy:
 
 ```bash
 # Install globally
 npm install -g capiscio
 
+# Set your API key (get one free at app.capisc.io)
+export CAPISCIO_API_KEY=sk_live_...
+
+# One command does everything!
+capiscio init
+```
+
+**What happens automatically:**
+
+- ✅ Ed25519 key pair generated
+- ✅ `did:key` identity derived
+- ✅ DID registered with CapiscIO
+- ✅ Agent card created
+- ✅ Trust badge requested
+
+Your `.capiscio/` directory now contains:
+
+```
+.capiscio/
+├── private.jwk      # Keep this secret!
+├── public.jwk
+├── did.txt          # Your agent's identity
+└── agent-card.json  # A2A-compliant agent card
+```
+
+### Two Setup Paths
+
+| Path | When to Use | Command |
+|------|-------------|---------|
+| **Quick Start** | Getting started, single agent | `capiscio init` |
+| **UI-First** | Teams, multiple agents | `capiscio init --agent-id agt_123` |
+
+## Other Commands
+
+```bash
 # Validate an agent card
 capiscio validate ./agent-card.json
 
