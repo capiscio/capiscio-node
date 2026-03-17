@@ -1,6 +1,6 @@
 {
   "name": "capiscio",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "The official CapiscIO CLI tool for validating A2A agents",
   "keywords": [
     "a2a",
@@ -44,8 +44,8 @@
     "test:watch": "vitest --watch --config vitest.config.ts --dir tests/unit",
     "test:coverage": "vitest run --coverage --config vitest.config.ts --dir tests/unit",
     "test:all": "npm run test:unit && npm run test:e2e",
-    "lint": "eslint src --ext .ts",
-    "lint:fix": "eslint src --ext .ts --fix",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build && npm run test:unit",
@@ -59,13 +59,12 @@
   },
   "devDependencies": {
     "@types/node": "^20.8.0",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "@vitest/coverage-v8": "^1.6.0",
-    "eslint": "^8.57.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.39.4",
     "tsup": "^8.5.0",
     "typescript": "^5.2.2",
-    "vite": "^5.4.20",
-    "vitest": "^1.6.1"
+    "typescript-eslint": "^8.57.1",
+    "vite": "^6.4.1",
+    "vitest": "^3.2.4"
   }
 }

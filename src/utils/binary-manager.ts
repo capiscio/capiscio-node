@@ -14,7 +14,7 @@ const REPO_OWNER = 'capiscio';
 const REPO_NAME = 'capiscio-core';
 
 // Allow version override via env var or package.json
-const DEFAULT_VERSION = 'v2.2.0';
+const DEFAULT_VERSION = 'v2.5.0';
 const VERSION = process.env.CAPISCIO_CORE_VERSION || DEFAULT_VERSION;
 
 export class BinaryManager {
@@ -28,7 +28,8 @@ export class BinaryManager {
     // regardless of whether we're running from src (dev) or dist (prod)
     
     // Check if running in pkg
-    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore — 'pkg' is injected by the pkg bundler at runtime
     if ('pkg' in process) {
       // In pkg, we should store the binary next to the executable
       this.installDir = path.dirname(process.execPath);
@@ -41,7 +42,7 @@ export class BinaryManager {
     if (!fs.existsSync(this.installDir)) {
       try {
         fs.mkdirSync(this.installDir, { recursive: true });
-      } catch (error) {
+      } catch (_error) {
         // If we can't create the directory (e.g. permission denied or read-only fs), 
         // fallback to a user-writable directory
         this.installDir = path.join(os.homedir(), '.capiscio', 'bin');

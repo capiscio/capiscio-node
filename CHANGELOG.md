@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-03-16
+
+### Changed
+- **CORE VERSION**: Now downloads `capiscio-core` v2.5.0
+
+### Fixed
+- `DEFAULT_VERSION` and exported `version` were stuck at v2.2.0, now correctly track release version
+
 ## [2.4.0] - 2026-01-18
 
 ### Changed
