@@ -14,7 +14,7 @@ const REPO_OWNER = 'capiscio';
 const REPO_NAME = 'capiscio-core';
 
 // Allow version override via env var or package.json
-const DEFAULT_VERSION = 'v2.5.0';
+const DEFAULT_VERSION = 'v2.6.0';
 const VERSION = process.env.CAPISCIO_CORE_VERSION || DEFAULT_VERSION;
 
 export class BinaryManager {
