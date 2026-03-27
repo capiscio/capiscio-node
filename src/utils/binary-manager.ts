@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import crypto from 'crypto';
 import axios from 'axios';
 import { promisify } from 'util';
 import stream from 'stream';
@@ -124,6 +125,9 @@ export class BinaryManager {
       const writer = fs.createWriteStream(tempFilePath);
       await pipeline(response.data, writer);
 
+      // Verify checksum integrity
+      await this.verifyChecksum(tempFilePath, assetName);
+
       // Move to install dir
       // We rename it to capiscio-core (or .exe) for internal consistency
       fs.copyFileSync(tempFilePath, this.binaryPath);
@@ -153,6 +157,44 @@ export class BinaryManager {
       // Attempt cleanup if tempDir was created (though it's local to try block, 
       // in a real scenario we'd scope it wider or rely on OS cleanup for temp files)
       throw error;
+    }
+  }
+
+  private async verifyChecksum(filePath: string, assetName: string): Promise<void> {
+    const checksumsUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${VERSION}/checksums.txt`;
+    
+    let expectedHash: string | null = null;
+    try {
+      const resp = await axios.get(checksumsUrl, { timeout: 30000 });
+      const lines = (resp.data as string).trim().split('\n');
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length === 2 && parts[1] === assetName) {
+          expectedHash = parts[0] ?? null;
+          break;
+        }
+      }
+    } catch {
+      console.warn('Warning: Could not fetch checksums.txt. Skipping integrity verification.');
+      return;
+    }
+
+    if (!expectedHash) {
+      console.warn(`Warning: Asset ${assetName} not found in checksums.txt. Skipping verification.`);
+      return;
+    }
+
+    const fileBuffer = fs.readFileSync(filePath);
+    const actualHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+
+    if (actualHash !== expectedHash) {
+      // Remove the tampered file
+      fs.unlinkSync(filePath);
+      throw new Error(
+        `Binary integrity check failed for ${assetName}. ` +
+        `Expected SHA-256: ${expectedHash}, got: ${actualHash}. ` +
+        'The downloaded file does not match the published checksum.'
+      );
     }
   }
 
