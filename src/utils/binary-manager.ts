@@ -170,7 +170,7 @@ export class BinaryManager {
       for (const line of lines) {
         const parts = line.trim().split(/\s+/);
         if (parts.length === 2 && parts[1] === assetName) {
-          expectedHash = parts[0];
+          expectedHash = parts[0] ?? null;
           break;
         }
       }
