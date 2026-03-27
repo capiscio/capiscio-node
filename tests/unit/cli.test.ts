@@ -204,7 +204,7 @@ describe('CLI Package', () => {
 
   it('should export version', async () => {
     const { version } = await import('../../src/index');
-    expect(version).toBe('2.5.0');
+    expect(version).toBe('2.6.0');
   });
 
   it('should export BinaryManager', async () => {
