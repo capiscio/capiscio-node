@@ -161,6 +161,9 @@ export class BinaryManager {
   }
 
   private async verifyChecksum(filePath: string, assetName: string): Promise<void> {
+    const requireChecksum = ['1', 'true', 'yes'].includes(
+      (process.env.CAPISCIO_REQUIRE_CHECKSUM ?? '').toLowerCase()
+    );
     const checksumsUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${VERSION}/checksums.txt`;
     
     let expectedHash: string | null = null;
@@ -175,21 +178,40 @@ export class BinaryManager {
         }
       }
     } catch {
+      if (requireChecksum) {
+        fs.rmSync(filePath, { force: true });
+        throw new Error(
+          'Checksum verification required (CAPISCIO_REQUIRE_CHECKSUM=true) ' +
+          'but checksums.txt is not available. Cannot verify binary integrity.'
+        );
+      }
       console.warn('Warning: Could not fetch checksums.txt. Skipping integrity verification.');
       return;
     }
 
     if (!expectedHash) {
+      if (requireChecksum) {
+        fs.rmSync(filePath, { force: true });
+        throw new Error(
+          `Checksum verification required (CAPISCIO_REQUIRE_CHECKSUM=true) ` +
+          `but asset ${assetName} not found in checksums.txt.`
+        );
+      }
       console.warn(`Warning: Asset ${assetName} not found in checksums.txt. Skipping verification.`);
       return;
     }
 
-    const fileBuffer = fs.readFileSync(filePath);
-    const actualHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+    const actualHash = await new Promise<string>((resolve, reject) => {
+      const hash = crypto.createHash('sha256');
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.on('data', (chunk) => hash.update(chunk));
+      fileStream.on('end', () => resolve(hash.digest('hex')));
+      fileStream.on('error', reject);
+    });
 
     if (actualHash !== expectedHash) {
       // Remove the tampered file
-      fs.unlinkSync(filePath);
+      fs.rmSync(filePath, { force: true });
       throw new Error(
         `Binary integrity check failed for ${assetName}. ` +
         `Expected SHA-256: ${expectedHash}, got: ${actualHash}. ` +
