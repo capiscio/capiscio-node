@@ -179,7 +179,7 @@ export class BinaryManager {
       }
     } catch {
       if (requireChecksum) {
-        fs.unlinkSync(filePath);
+        fs.rmSync(filePath, { force: true });
         throw new Error(
           'Checksum verification required (CAPISCIO_REQUIRE_CHECKSUM=true) ' +
           'but checksums.txt is not available. Cannot verify binary integrity.'
@@ -191,7 +191,7 @@ export class BinaryManager {
 
     if (!expectedHash) {
       if (requireChecksum) {
-        fs.unlinkSync(filePath);
+        fs.rmSync(filePath, { force: true });
         throw new Error(
           `Checksum verification required (CAPISCIO_REQUIRE_CHECKSUM=true) ` +
           `but asset ${assetName} not found in checksums.txt.`
@@ -201,12 +201,17 @@ export class BinaryManager {
       return;
     }
 
-    const fileBuffer = fs.readFileSync(filePath);
-    const actualHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+    const actualHash = await new Promise<string>((resolve, reject) => {
+      const hash = crypto.createHash('sha256');
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.on('data', (chunk) => hash.update(chunk));
+      fileStream.on('end', () => resolve(hash.digest('hex')));
+      fileStream.on('error', reject);
+    });
 
     if (actualHash !== expectedHash) {
       // Remove the tampered file
-      fs.unlinkSync(filePath);
+      fs.rmSync(filePath, { force: true });
       throw new Error(
         `Binary integrity check failed for ${assetName}. ` +
         `Expected SHA-256: ${expectedHash}, got: ${actualHash}. ` +
