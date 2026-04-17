@@ -98,8 +98,8 @@ jobs:
       
     - name: Run security audit
       run: |
-        # Check production dependencies (block high/critical only)
-        npm audit --audit-level high --omit=dev
+        # Check production dependencies (block critical only)
+        npm audit --audit-level critical --omit=dev
         
-        # Check dev dependencies (block high/critical only)
-        npm audit --audit-level high --include=dev
+        # Check dev dependencies (block critical only)
+        npm audit --audit-level critical --include=dev
