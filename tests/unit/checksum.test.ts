@@ -85,12 +85,12 @@ describe('Checksum verification', () => {
     vi.spyOn(os, 'platform').mockReturnValue('linux');
     vi.spyOn(os, 'arch').mockReturnValue('x64');
 
-    delete process.env.CAPISCIO_REQUIRE_CHECKSUM;
+    delete process.env.CAPISCIO_SKIP_CHECKSUM;
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    delete process.env.CAPISCIO_REQUIRE_CHECKSUM;
+    delete process.env.CAPISCIO_SKIP_CHECKSUM;
   });
 
   /**
@@ -169,7 +169,23 @@ describe('Checksum verification', () => {
     );
   });
 
-  it('should skip verification when checksums.txt fetch fails and CAPISCIO_REQUIRE_CHECKSUM is not set', async () => {
+  it('should throw when checksums.txt fetch fails (fail-closed default)', async () => {
+    await setupMocks(new Error('Network error'));
+
+    const { BinaryManager } = await import('../../src/utils/binary-manager');
+    const instance = BinaryManager.getInstance();
+
+    await expect(instance.getBinaryPath()).rejects.toThrow(
+      'Checksum verification failed',
+    );
+    expect(fs.rmSync).toHaveBeenCalledWith(
+      expect.stringContaining('capiscio'),
+      { force: true },
+    );
+  });
+
+  it('should skip verification when checksums.txt fetch fails and CAPISCIO_SKIP_CHECKSUM=true', async () => {
+    process.env.CAPISCIO_SKIP_CHECKSUM = 'true';
     await setupMocks(new Error('Network error'));
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -181,24 +197,7 @@ describe('Checksum verification', () => {
     warnSpy.mockRestore();
   });
 
-  it('should throw when checksums.txt fetch fails and CAPISCIO_REQUIRE_CHECKSUM=true', async () => {
-    process.env.CAPISCIO_REQUIRE_CHECKSUM = 'true';
-    await setupMocks(new Error('Network error'));
-
-    const { BinaryManager } = await import('../../src/utils/binary-manager');
-    const instance = BinaryManager.getInstance();
-
-    await expect(instance.getBinaryPath()).rejects.toThrow(
-      'Checksum verification required',
-    );
-    expect(fs.rmSync).toHaveBeenCalledWith(
-      expect.stringContaining('capiscio'),
-      { force: true },
-    );
-  });
-
-  it('should throw when asset not found in checksums.txt and CAPISCIO_REQUIRE_CHECKSUM=true', async () => {
-    process.env.CAPISCIO_REQUIRE_CHECKSUM = 'true';
+  it('should throw when asset not found in checksums.txt (fail-closed default)', async () => {
     // checksums.txt exists but does not contain our asset
     await setupMocks({
       data: 'abc123  some-other-asset\n',
@@ -216,7 +215,8 @@ describe('Checksum verification', () => {
     );
   });
 
-  it('should skip verification when asset not found in checksums.txt and require is off', async () => {
+  it('should skip verification when asset not found in checksums.txt and CAPISCIO_SKIP_CHECKSUM=true', async () => {
+    process.env.CAPISCIO_SKIP_CHECKSUM = 'true';
     await setupMocks({
       data: 'abc123  some-other-asset\n',
     });
@@ -230,7 +230,7 @@ describe('Checksum verification', () => {
     warnSpy.mockRestore();
   });
 
-  it('should accept CAPISCIO_REQUIRE_CHECKSUM values: 1, yes, TRUE', async () => {
+  it('should accept CAPISCIO_SKIP_CHECKSUM values: 1, yes, TRUE', async () => {
     for (const val of ['1', 'yes', 'TRUE']) {
       resetBinaryManager();
       vi.clearAllMocks();
@@ -251,13 +251,16 @@ describe('Checksum verification', () => {
       vi.spyOn(os, 'platform').mockReturnValue('linux');
       vi.spyOn(os, 'arch').mockReturnValue('x64');
 
-      process.env.CAPISCIO_REQUIRE_CHECKSUM = val;
+      process.env.CAPISCIO_SKIP_CHECKSUM = val;
       await setupMocks(new Error('fetch failed'));
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       const { BinaryManager } = await import('../../src/utils/binary-manager');
       const instance = BinaryManager.getInstance();
 
-      await expect(instance.getBinaryPath()).rejects.toThrow('Checksum verification required');
+      await expect(instance.getBinaryPath()).resolves.toBeDefined();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Could not fetch checksums.txt'));
+      warnSpy.mockRestore();
     }
   });
 });

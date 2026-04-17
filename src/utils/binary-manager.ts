@@ -115,8 +115,15 @@ export class BinaryManager {
       
       const url = `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${VERSION}/${assetName}`;
 
-      // Download
-      const response = await axios.get(url, { responseType: 'stream' });
+      // Download with timeout
+      const controller = new AbortController();
+      const downloadTimeout = setTimeout(() => controller.abort(), 60000);
+
+      const response = await axios.get(url, {
+        responseType: 'stream',
+        signal: controller.signal,
+        timeout: 60000,
+      });
       
       // Write directly to a temp file
       const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'capiscio-'));
@@ -124,6 +131,7 @@ export class BinaryManager {
       
       const writer = fs.createWriteStream(tempFilePath);
       await pipeline(response.data, writer);
+      clearTimeout(downloadTimeout);
 
       // Verify checksum integrity
       await this.verifyChecksum(tempFilePath, assetName);
@@ -161,8 +169,8 @@ export class BinaryManager {
   }
 
   private async verifyChecksum(filePath: string, assetName: string): Promise<void> {
-    const requireChecksum = ['1', 'true', 'yes'].includes(
-      (process.env.CAPISCIO_REQUIRE_CHECKSUM ?? '').toLowerCase()
+    const skipChecksum = ['1', 'true', 'yes'].includes(
+      (process.env.CAPISCIO_SKIP_CHECKSUM ?? '').toLowerCase()
     );
     const checksumsUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${VERSION}/checksums.txt`;
     
@@ -178,27 +186,27 @@ export class BinaryManager {
         }
       }
     } catch {
-      if (requireChecksum) {
-        fs.rmSync(filePath, { force: true });
-        throw new Error(
-          'Checksum verification required (CAPISCIO_REQUIRE_CHECKSUM=true) ' +
-          'but checksums.txt is not available. Cannot verify binary integrity.'
-        );
+      if (skipChecksum) {
+        console.warn('Warning: Could not fetch checksums.txt. Skipping integrity verification (CAPISCIO_SKIP_CHECKSUM=true).');
+        return;
       }
-      console.warn('Warning: Could not fetch checksums.txt. Skipping integrity verification.');
-      return;
+      fs.rmSync(filePath, { force: true });
+      throw new Error(
+        'Checksum verification failed: checksums.txt is not available. ' +
+        'Cannot verify binary integrity. Set CAPISCIO_SKIP_CHECKSUM=true to bypass.'
+      );
     }
 
     if (!expectedHash) {
-      if (requireChecksum) {
-        fs.rmSync(filePath, { force: true });
-        throw new Error(
-          `Checksum verification required (CAPISCIO_REQUIRE_CHECKSUM=true) ` +
-          `but asset ${assetName} not found in checksums.txt.`
-        );
+      if (skipChecksum) {
+        console.warn(`Warning: Asset ${assetName} not found in checksums.txt. Skipping verification (CAPISCIO_SKIP_CHECKSUM=true).`);
+        return;
       }
-      console.warn(`Warning: Asset ${assetName} not found in checksums.txt. Skipping verification.`);
-      return;
+      fs.rmSync(filePath, { force: true });
+      throw new Error(
+        `Checksum verification failed: asset ${assetName} not found in checksums.txt. ` +
+        `Set CAPISCIO_SKIP_CHECKSUM=true to bypass.`
+      );
     }
 
     const actualHash = await new Promise<string>((resolve, reject) => {
