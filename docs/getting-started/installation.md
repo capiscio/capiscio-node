@@ -42,10 +42,11 @@ $ capiscio --version
 capiscio version 1.0.2
 ```
 
-The binary is cached in:
+The binary is stored in:
 
-- **macOS/Linux**: `~/.capiscio/bin/`
-- **Windows**: `%USERPROFILE%\.capiscio\bin\`
+- **Primary**: `<package>/bin/capiscio` (alongside node_modules)
+- **Fallback**: `~/.capiscio/bin/capiscio` (if package dir is read-only)
+- **Windows fallback**: `%USERPROFILE%\.capiscio\bin\`
 
 ## Environment Variables
 

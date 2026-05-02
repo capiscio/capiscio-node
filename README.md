@@ -55,10 +55,11 @@ The Node.js wrapper includes specific commands to manage the binary:
 ## How It Works
 
 1. **Detection**: When you run `capiscio`, the script detects your OS (Linux, macOS, Windows) and Architecture (AMD64, ARM64).
-2. **Provisioning**: It checks if the correct `capiscio-core` binary is present in the cache.
-   - *Linux/macOS*: `~/.capiscio/bin`
-   - *Windows*: `%USERPROFILE%\.capiscio\bin`
-3. **Download**: If missing, it securely downloads the release from GitHub.
+2. **Provisioning**: It checks if the correct `capiscio-core` binary is present:
+   - **Primary**: `<package>/bin/capiscio` (alongside node_modules)
+   - **Fallback**: `~/.capiscio/bin/capiscio` (if package dir is read-only)
+   - *Windows fallback*: `%USERPROFILE%\.capiscio\bin`
+3. **Download**: If missing, it downloads the release from GitHub on first run (no postinstall script).
 4. **Execution**: It seamlessly delegates to the Go binary, passing all arguments through.
 
 ## Supported Platforms
