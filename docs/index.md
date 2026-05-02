@@ -89,10 +89,10 @@ capiscio --version
 ## What This Package Does
 
 1. **Downloads** the correct `capiscio-core` binary for your platform (macOS/Linux/Windows, AMD64/ARM64)
-2. **Caches** the binary in `~/.capiscio/bin` (or `%USERPROFILE%\.capiscio\bin` on Windows)
+2. **Caches** the binary in `<package>/bin/` (primary) or `~/.capiscio/bin` (fallback if package dir is read-only)
 3. **Executes** the binary with your arguments via `execa` with inherited stdio
 
-All validation logic lives in `capiscio-core`. This wrapper just makes it easy to install via npm.
+All validation logic lives in `capiscio-core`. This wrapper just makes it easy to install via npm. No postinstall script runs — download happens lazily on first command.
 
 ## Wrapper-Specific Commands
 
