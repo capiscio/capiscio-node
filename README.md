@@ -75,6 +75,18 @@ The Node.js wrapper includes specific commands to manage the binary:
 | `CAPISCIO_CORE_VERSION` | Override the default core binary version (e.g., `v1.0.2`) |
 | `CAPISCIO_CORE_PATH` | Use a specific binary path instead of auto-downloading |
 
+## Binary Integrity Verification
+
+On first run, the wrapper downloads the capiscio-core binary and verifies its SHA-256 checksum
+against the published `checksums.txt` from the GitHub release.
+
+If verification fails or the checksums file is unavailable:
+
+```bash
+# Temporary bypass (not recommended for production)
+export CAPISCIO_SKIP_CHECKSUM=true
+```
+
 ## Troubleshooting
 
 **"Permission denied" errors:**
@@ -85,6 +97,10 @@ capiscio --wrapper-clean
 
 **"Binary not found" or download errors:**
 If you are behind a corporate firewall, ensure you can access `github.com`.
+
+**Checksum verification failures:**
+If you see "Checksum verification failed", the binary integrity could not be confirmed.
+This can happen with pre-release versions or network issues. See the [Binary Integrity Verification](#binary-integrity-verification) section above.
 
 ## Related Packages
 
