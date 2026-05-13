@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-05-13
+
+### Changed
+- **CORE VERSION**: Now downloads `capiscio-core` v2.7.0
+
+### Fixed
+- Download timeout and checksum fail-closed (#41)
+- Add `CAPISCIO_REQUIRE_CHECKSUM` fail-closed mode
+- Binary SHA-256 checksum verification after download
+
 ## [2.6.0] - 2026-03-27
 
 ### Changed
